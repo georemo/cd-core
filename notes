@@ -1,0 +1,11 @@
+- create a cd module that facilitates entry points for module/controller/action(data)
+- create a cobra base that can consume cd moodule with cli pattern of cd -m=os -c=userman -a=adduser -d='{"username":"jdoe"}'
+    - the outpush should be data that can be converted to standard cd json response
+- create an golang http api that accepts generic cd json input of 
+    - the outpush should be standard cd json response
+- create a golang http api that can accept standard rest api and repond in standard rest api expectations
+
+core features:
+- authentication
+- authorization
+- 
