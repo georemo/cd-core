@@ -17,11 +17,13 @@ By George Oremo
 For EMP Services Ltd
 22 Fef 2024
 */
-package cd
+package base
 
 import (
 	"fmt"
 	"plugin"
+	//"cd-user"
+	//"cd-moduleman"
 )
 
 type ICdRequest struct {
@@ -74,11 +76,14 @@ type ICdResponse struct {
 	data      string
 }
 
-func Auth(req string) {
-
+func auth(req ICdRequest) bool {
+	/*
+		user.getSession()
+	*/
+	return true
 }
 
-func Run(req ICdRequest) string {
+func exec(req ICdRequest) string {
 	// Name of the plugin to load
 	pluginName := req.c + ".so" // Replace with the name of your plugin file
 
@@ -113,4 +118,13 @@ func Run(req ICdRequest) string {
 
 	fmt.Println("Plugin function returned:", resp)
 	return resp
+}
+
+func Run(req ICdRequest) string {
+	// Call the function in the plugin with input parameters
+	if auth(req) {
+		return exec(req)
+	} else {
+		return "{}"
+	}
 }
