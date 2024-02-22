@@ -24,38 +24,93 @@ import (
 	"plugin"
 )
 
-func Start(m string, c string, a string, data string) {
+type ICdRequest struct {
+	ctx  string
+	m    string
+	c    string
+	a    string
+	dat  string
+	args string
+}
+
+type JWT struct {
+	jwtToken   string
+	checked    bool
+	checkTime  int
+	authorized bool
+}
+
+type ISessResp struct {
+	cd_token string
+	userId   int
+	jwt      JWT
+	ttl      int
+	initUuid string
+	initTime string
+}
+
+type IRespInfo struct {
+	messages []string
+	code     string
+	app_msg  string
+}
+
+type IServerConfig struct {
+	usePush       bool
+	usePolling    bool
+	useCacheStore bool
+}
+
+type IAppState struct {
+	success bool
+	info    IRespInfo
+	sess    ISessResp
+	cache   string
+	sConfig IServerConfig
+}
+
+type ICdResponse struct {
+	app_state IAppState
+	data      string
+}
+
+func Auth(req string) {
+
+}
+
+func Run(req ICdRequest) string {
 	// Name of the plugin to load
-	pluginName := c + ".so" // Replace with the name of your plugin file
+	pluginName := req.c + ".so" // Replace with the name of your plugin file
 
 	// Load the plugin
 	p, err := plugin.Open(pluginName)
 	if err != nil {
 		fmt.Println("Error opening plugin:", err)
-		return
+		return "{}"
 	}
 
 	// Look up the symbol (function) in the plugin
-	runSymbol, err := p.Lookup(a)
+	runSymbol, err := p.Lookup(req.a)
 	if err != nil {
 		fmt.Println("Error finding symbol in plugin:", err)
-		return
+		return "{}"
 	}
 
 	// Assert that the symbol implements the PluginInterface
-	var pluginFunc func(m string, c string, a string, data string) (string, error)
-	pluginFunc, ok := runSymbol.(func(m string, c string, a string, data string) (string, error))
+	var pluginFunc func(string) (string, error)
+	pluginFunc, ok := runSymbol.(func(string) (string, error))
 	if !ok {
 		fmt.Println("Error: Symbol does not implement expected interface.")
-		return
+		return "{}"
 	}
 
 	// Call the function in the plugin with input parameters
-	result, err := pluginFunc("module", "controller", "acton", "{\"data\":\"xx\"}")
+	resp, err := pluginFunc(req.dat)
 	if err != nil {
 		fmt.Println("Error calling plugin function:", err)
-		return
+		return "{}"
 	}
 
-	fmt.Println("Plugin function returned:", result)
+	fmt.Println("Plugin function returned:", resp)
+	return resp
 }
