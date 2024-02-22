@@ -51,7 +51,7 @@ func Start(m string, c string, a string, data string) {
 	}
 
 	// Call the function in the plugin with input parameters
-	result, err := pluginFunc("input_parameter_1", "input_parameter_2")
+	result, err := pluginFunc("module", "controller", "acton", "{\"data\":\"xx\"}")
 	if err != nil {
 		fmt.Println("Error calling plugin function:", err)
 		return
