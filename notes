@@ -8,4 +8,9 @@
 core features:
 - authentication
 - authorization
-- 
+- db connection
+- cd-obj
+- cd-modeman
+- cd-user
+- cd-comm
+- cd-scheduler

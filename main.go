@@ -1,3 +1,22 @@
+/*
+*
+In this example:
+
+	We define a simple interface PluginInterface that specifies the method Run. Plugins must implement this interface.
+	The main function loads a plugin specified by pluginName using plugin.Open.
+	We then look up the Run symbol in the plugin using plugin.Lookup.
+	We assert that the symbol implements the expected interface and cast it to the appropriate type.
+	Finally, we call the function in the plugin with input parameters and handle any errors.
+
+You'll need to compile your plugin separately as a shared object file
+(.so on Unix/Linux systems) and replace "example_plugin.so" with the name of your plugin file. Additionally,
+ensure that your plugin implements the PluginInterface interface and exports a function named Run that matches
+the signature specified in the interface.
+
+By George Oremo
+For EMP Services Ltd
+22 Fef 2024
+*/
 package main
 
 import (
