@@ -17,21 +17,16 @@ By George Oremo
 For EMP Services Ltd
 22 Fef 2024
 */
-package main
+package cd
 
 import (
 	"fmt"
 	"plugin"
 )
 
-// Define a simple interface that plugins must implement.
-type PluginInterface interface {
-	Run(input string) (string, error)
-}
-
-func main() {
+func Start(m string, c string, a string, data string) {
 	// Name of the plugin to load
-	pluginName := "example_plugin.so" // Replace with the name of your plugin file
+	pluginName := c + ".so" // Replace with the name of your plugin file
 
 	// Load the plugin
 	p, err := plugin.Open(pluginName)
@@ -41,22 +36,22 @@ func main() {
 	}
 
 	// Look up the symbol (function) in the plugin
-	runSymbol, err := p.Lookup("Run")
+	runSymbol, err := p.Lookup(a)
 	if err != nil {
 		fmt.Println("Error finding symbol in plugin:", err)
 		return
 	}
 
 	// Assert that the symbol implements the PluginInterface
-	var pluginFunc func(input string) (string, error)
-	pluginFunc, ok := runSymbol.(func(input string) (string, error))
+	var pluginFunc func(m string, c string, a string, data string) (string, error)
+	pluginFunc, ok := runSymbol.(func(m string, c string, a string, data string) (string, error))
 	if !ok {
 		fmt.Println("Error: Symbol does not implement expected interface.")
 		return
 	}
 
 	// Call the function in the plugin with input parameters
-	result, err := pluginFunc("input_parameter")
+	result, err := pluginFunc("input_parameter_1", "input_parameter_2")
 	if err != nil {
 		fmt.Println("Error calling plugin function:", err)
 		return
