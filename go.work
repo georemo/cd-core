@@ -2,6 +2,9 @@ go 1.21.5
 
 use (
 	.
+	./app
+	./app/cd-accts
+	./app/cd-hrm
 	./sys
 	./sys/base
 	./sys/cd-push
@@ -10,7 +13,4 @@ use (
 	./sys/moduleman
 	./sys/scheduler
 	./sys/user
-	./app
-	./app/cd-accts
-	./app/cd-hrm
 )
