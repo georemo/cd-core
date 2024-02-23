@@ -22,66 +22,10 @@ package cd
 import (
 	"fmt"
 	"plugin"
+	//"sys/base"
 	//"cd-user"
 	//"cd-moduleman"
 )
-
-type ICdRequest struct {
-	ctx  string
-	m    string
-	c    string
-	a    string
-	dat  string
-	args string
-}
-
-type JWT struct {
-	jwtToken   string
-	checked    bool
-	checkTime  int
-	authorized bool
-}
-
-type ISessResp struct {
-	cd_token string
-	userId   int
-	jwt      JWT
-	ttl      int
-	initUuid string
-	initTime string
-}
-
-type IRespInfo struct {
-	messages []string
-	code     string
-	app_msg  string
-}
-
-type IServerConfig struct {
-	usePush       bool
-	usePolling    bool
-	useCacheStore bool
-}
-
-type IAppState struct {
-	success bool
-	info    IRespInfo
-	sess    ISessResp
-	cache   string
-	sConfig IServerConfig
-}
-
-type ICdResponse struct {
-	app_state IAppState
-	data      string
-}
-
-func auth(req ICdRequest) bool {
-	/*
-		user.getSession()
-	*/
-	return true
-}
 
 func exec(req ICdRequest) string {
 	// Name of the plugin to load
