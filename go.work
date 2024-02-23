@@ -1,0 +1,16 @@
+go 1.21.5
+
+use (
+	.
+	./sys
+	./sys/base
+	./sys/cd-push
+	./sys/comm
+	./sys/inte-ract
+	./sys/moduleman
+	./sys/scheduler
+	./sys/user
+	./app
+	./app/cd-accts
+	./app/cd-hrm
+)
