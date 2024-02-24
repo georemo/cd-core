@@ -18,10 +18,14 @@ func jToStr(field string) string {
 		fmt.Fprintln(os.Stderr, err)
 		return ""
 	} else {
-		fmt.Println("biteF:", biteF)
+		// fmt.Println("biteF:", biteF)
 		return string(biteF[:])
 	}
 
+}
+
+func removeQt(s string) string {
+	return s[1 : len(s)-1]
 }
 
 func Run(req string) string {
@@ -33,11 +37,11 @@ func Run(req string) string {
 		fmt.Println("Successfull JSON encoding")
 		fmt.Println(jsonMap)
 
-		jReq.ctx = jToStr("ctx")
-		jReq.m = jToStr("m")
-		jReq.c = jToStr("c")
-		jReq.a = jToStr("a")
-		jReq.dat = jToStr("dat")
+		jReq.ctx = removeQt(jToStr("ctx"))
+		jReq.m = removeQt(jToStr("m"))
+		jReq.c = removeQt(jToStr("c"))
+		jReq.a = removeQt(jToStr("a"))
+		jReq.dat = removeQt(jToStr("dat"))
 
 	} else {
 		fmt.Println("Error:", r)
@@ -45,7 +49,9 @@ func Run(req string) string {
 
 	/////////////////////////////////////
 	// Name of the plugin to load
+	fmt.Println("Controller:", jReq.c)
 	pluginName := jReq.c + ".so" // Replace with the name of your plugin file
+	fmt.Println("pluginName:", pluginName)
 
 	// Load the plugin
 	p, err := plugin.Open(pluginName)
