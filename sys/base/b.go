@@ -3,6 +3,7 @@ package base
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"plugin"
 )
 
@@ -12,9 +13,15 @@ var jReq ICdRequest
 func jToStr(field string) string {
 	f := jsonMap[field]
 	// fmt.Println("ctx:", ctx)
-	biteF, _ := json.Marshal(f)
-	fmt.Println("biteF:", biteF)
-	return string(biteF[:])
+	biteF, err := json.Marshal(f)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return ""
+	} else {
+		fmt.Println("biteF:", biteF)
+		return string(biteF[:])
+	}
+
 }
 
 func Run(req string) string {
