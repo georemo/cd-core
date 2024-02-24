@@ -1,13 +1,44 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"plugin"
 )
 
-func Exec(req ICdRequest) string {
+var jsonMap map[string]interface{}
+var jReq ICdRequest
+
+func jToStr(field string) string {
+	f := jsonMap[field]
+	// fmt.Println("ctx:", ctx)
+	biteF, _ := json.Marshal(f)
+	fmt.Println("biteF:", biteF)
+	return string(biteF[:])
+}
+
+func Run(req string) string {
+
+	fmt.Println("Processing JSON...")
+
+	r := json.Unmarshal([]byte(req), &jsonMap)
+	if r == nil {
+		fmt.Println("Successfull JSON encoding")
+		fmt.Println(jsonMap)
+
+		jReq.ctx = jToStr("ctx")
+		jReq.m = jToStr("m")
+		jReq.c = jToStr("c")
+		jReq.a = jToStr("a")
+		jReq.dat = jToStr("dat")
+
+	} else {
+		fmt.Println("Error:", r)
+	}
+
+	/////////////////////////////////////
 	// Name of the plugin to load
-	pluginName := req.c + ".so" // Replace with the name of your plugin file
+	pluginName := jReq.c + ".so" // Replace with the name of your plugin file
 
 	// Load the plugin
 	p, err := plugin.Open(pluginName)
@@ -17,7 +48,7 @@ func Exec(req ICdRequest) string {
 	}
 
 	// Look up the symbol (function) in the plugin
-	runSymbol, err := p.Lookup(req.a)
+	runSymbol, err := p.Lookup(jReq.a)
 	if err != nil {
 		fmt.Println("Error finding symbol in plugin:", err)
 		return "{}"
@@ -32,7 +63,7 @@ func Exec(req ICdRequest) string {
 	}
 
 	// Call the function in the plugin with input parameters
-	resp, err := pluginFunc(req.dat)
+	resp, err := pluginFunc(jReq.dat)
 	if err != nil {
 		fmt.Println("Error calling plugin function:", err)
 		return "{}"
@@ -40,13 +71,4 @@ func Exec(req ICdRequest) string {
 
 	fmt.Println("Plugin function returned:", resp)
 	return resp
-}
-
-func Run(req ICdRequest) string {
-	// Call the function in the plugin with input parameters
-	if auth(req) {
-		return exec(req)
-	} else {
-		return "{}"
-	}
 }
