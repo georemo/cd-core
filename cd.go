@@ -12,15 +12,8 @@ import (
 	"github.com/georemo/cd-core/sys/base"
 )
 
-// func abc(base.ICdRequest) string
-
-func abc(){
-	req := new(base.ICdRequest)
-	req.
-}
-
-func exec(data base.ICdRequest) {
-	base.Exec(data) // Call the function with the parameter
+func exec(data string) {
+	// base.Exec(data) // Call the function with the parameter
 }
 
 func run(data base.ICdRequest) {

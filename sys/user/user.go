@@ -1,5 +1,5 @@
-package github.com/georemo/cd-core/sys/base
+package base
 
-func Auth(req CdRequest) bool {
+func Auth(string) bool {
 	return true
 }
