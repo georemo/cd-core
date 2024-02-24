@@ -47,7 +47,7 @@ func Run(req string) string {
 		fmt.Println("Error:", r)
 	}
 
-	/////////////////////////////////////
+	////////////////////////////////////
 	// Name of the plugin to load
 	fmt.Println("Controller:", jReq.c)
 	pluginName := jReq.c + ".so" // Replace with the name of your plugin file
