@@ -26,7 +26,7 @@ func jToStr(field string) string {
 
 func Run(req string) string {
 
-	fmt.Println("Processing JSON...")
+	fmt.Println("b::Run()/Processing JSON...")
 
 	r := json.Unmarshal([]byte(req), &jsonMap)
 	if r == nil {
