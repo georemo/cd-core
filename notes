@@ -14,6 +14,7 @@
 - create a golang http api that can accept standard rest api and repond in standard rest api expectations
 
 
+
 Publish is used by developers to register module
   - get the latest tag:
   - git ls-remote --tags https://github.com/tcp-x/cd-core.git
@@ -30,6 +31,13 @@ Publish is used by developers to register module
   - auto test
   - req test designed by corpdesk team
   - version
+
+Updating submodules:
+- Ref: https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/How-to-update-Git-submodules
+    git submodule update --remote
+    git add .
+    git commit -m "git submodule updated"
+    git push origin
 
 
 core features:
