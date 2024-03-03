@@ -28,12 +28,12 @@ func removeQt(s string) string {
 	return s[1 : len(s)-1]
 }
 
-func ExecPlug(req string) string {
+func ExecPlug(req string) (string, error) {
 
 	fmt.Println("b::ExecPlug()/Processing JSON...")
 
-	r := json.Unmarshal([]byte(req), &jsonMap)
-	if r == nil {
+	err := json.Unmarshal([]byte(req), &jsonMap)
+	if err == nil {
 		fmt.Println("Successfull JSON encoding")
 		fmt.Println(jsonMap)
 
@@ -44,7 +44,8 @@ func ExecPlug(req string) string {
 		jReq.dat = removeQt(jToStr("dat"))
 
 	} else {
-		fmt.Println("Error:", r)
+		fmt.Println("Error:", err)
+		return "", err
 	}
 
 	/////////////////////////////////////
@@ -56,27 +57,33 @@ func ExecPlug(req string) string {
 	fmt.Printf("Loading plugin %s", pluginName)
 	p, err := plugin.Open(pluginName)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return "", err
+
 	}
 
 	////////////////////////////////////
 	// Lookup – Searches for Action symbol name in the plugin
 	symbolAx, errAuth := p.Lookup(jReq.a)
 	if errAuth != nil {
-		panic(errAuth)
+		// panic(errAuth)
+		return "", errAuth
+
 	}
 
 	// symbol – Checks the function signature
 	f, ok := symbolAx.(func(string) string)
 	if !ok {
-		panic("Plugin has no 'f(string)string' function")
+		// panic("Plugin has no " + jReq.a + " 'f(string)string' function")
+		fmt.Printf("\nPlugin has no %s  'f(string)string' function\n", jReq.a)
+		return "", &CdError{}
 	}
 
 	// Uses f() function to return results
 	resp := f(jReq.dat)
 	fmt.Printf("\nf() return is:%s\n", resp)
 
-	return resp
+	return resp, nil
 }
 
 func Run(req string) string {
