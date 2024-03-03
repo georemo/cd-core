@@ -9,8 +9,11 @@ For EMP Services Ltd
 package cd
 
 import (
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/tcp-x/cd-core/sys/base"
 )
+
+var mc = memcache.New("localhost:11211")
 
 func exec(data string) {
 	// base.Exec(data) // Call the function with the parameter
