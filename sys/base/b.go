@@ -28,6 +28,12 @@ func removeQt(s string) string {
 	return s[1 : len(s)-1]
 }
 
+/*
+ExecPlug is for processing corpdesk json command
+Input: json string request in ICdRequest format
+Output 1: json output in ICdResponse format
+Output 2: error
+*/
 func ExecPlug(req string) (string, error) {
 
 	fmt.Println("b::ExecPlug()/Processing JSON...")
