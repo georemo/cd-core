@@ -30,6 +30,8 @@ func removeQt(s string) string {
 
 func Run(req string) string {
 
+	Conn()
+
 	fmt.Println("b::Run()/Processing JSON...")
 
 	r := json.Unmarshal([]byte(req), &jsonMap)
