@@ -9,7 +9,7 @@ For EMP Services Ltd
 package cd
 
 import (
-	"github.com/georemo/cd-core/sys/base"
+	"github.com/tcp-x/cd-core/sys/base"
 )
 
 func exec(data string) {
