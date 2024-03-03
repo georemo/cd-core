@@ -1,4 +1,4 @@
-Version="v0.0.17"
+Version="v0.0.18"
 # projDir="./cd-user/user.go"
 
 # cd $projDir
