@@ -1,3 +1,4 @@
+// Manage corpdesk user sessions
 package user
 
 import (
