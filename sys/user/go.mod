@@ -1,4 +1,4 @@
-module user
+module github.com/tcp-x/cd-core/sys/user
 
 go 1.21.5
 
