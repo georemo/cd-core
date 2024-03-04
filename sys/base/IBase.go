@@ -9,6 +9,15 @@ type ICdRequest struct {
 	args string
 }
 
+type ICdRequestExp struct {
+	Ctx  string
+	M    string
+	C    string
+	A    string
+	Dat  string
+	args string
+}
+
 type JWT struct {
 	jwtToken   string
 	checked    bool

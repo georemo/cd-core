@@ -154,8 +154,8 @@ func Run(req string) string {
 }
 
 // Function to convert JSON string to ICdRequest
-func JSONToICdRequest(jsonString string) (ICdRequest, error) {
-	var reqData ICdRequest
+func JSONToICdRequest(jsonString string) (ICdRequestExp, error) {
+	var reqData ICdRequestExp
 	err := json.Unmarshal([]byte(jsonString), &reqData)
 	return reqData, err
 }
