@@ -134,7 +134,7 @@ func Run(req string) string {
 		return "{}"
 	}
 
-	// Assert that the symbol implements the PluginInterface
+	// Assert that the symbol implements the PluginInterface--
 	var pluginFunc func(string) (string, error)
 	pluginFunc, ok := runSymbol.(func(string) (string, error))
 	if !ok {

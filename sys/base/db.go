@@ -74,7 +74,7 @@ func Create(tableName string, records []interface{}, db *gorm.DB) {
 	// 	// Example: Name string `gorm:"column:name"`
 	// }
 
-	// Dynamically create table model
+	// Dynamically create table model-
 	// tableName := "your_table_name"
 	tableModel := reflect.New(reflect.StructOf([]reflect.StructField{
 		reflect.StructField{Name: "TableRow", Type: reflect.TypeOf(TableRow{})},
