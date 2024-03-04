@@ -142,7 +142,7 @@ func Run(req string) string {
 		return "{}"
 	}
 
-	// Call the function in the plugin with input parameters
+	// Call the function in the plugin with input  parameters
 	resp, err := pluginFunc(jReq.dat)
 	if err != nil {
 		fmt.Println("Error calling plugin function:", err)
