@@ -2,7 +2,7 @@
 echo "current repository latest version:\n"
 git ls-remote --tags https://github.com/tcp-x/cd-core.git
 # set latest version
-Version="v0.0.31"
+Version="v0.0.32"
 # projDir="./cd-user/user.go"
 
 # cd $projDir
@@ -20,8 +20,8 @@ git tag $Version-user
 
 git add .
 git commit -a -m "set version $Version"
-git push origin $Version
 git tag $Version
+git push origin $Version
 
 
 # cd-cli mod publish 
