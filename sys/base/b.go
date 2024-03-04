@@ -152,3 +152,10 @@ func Run(req string) string {
 	fmt.Println("Plugin function returned:", resp)
 	return resp
 }
+
+// Function to convert JSON string to ICdRequest
+func JSONToICdRequest(jsonString string) (ICdRequest, error) {
+	var reqData ICdRequest
+	err := json.Unmarshal([]byte(jsonString), &reqData)
+	return reqData, err
+}
