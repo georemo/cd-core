@@ -32,6 +32,7 @@ type User struct {
 	UserTypeId    uint      `json:"user_type_id"`
 }
 
+// Auth
 func Auth(string) bool {
 	return true
 }
