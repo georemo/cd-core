@@ -38,7 +38,7 @@ type User struct {
 }
 
 // Auth
-func (u User) Auth(req string) (string, error) {
+func Auth(req string) (string, error) {
 	// var records []User
 	// usr := base.Get("user", records, db)
 
