@@ -18,6 +18,10 @@ type Session struct {
 	SessionTypeId uint   `json:"Session_type_id"`
 }
 
+func New(req string) (string, error) {
+	return "", nil
+}
+
 func SessInit(cdToken string) {
 
 	mErr := mc.Set(&memcache.Item{Key: "CD_SESS_ID", Value: []byte(cdToken)})

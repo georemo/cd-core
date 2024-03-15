@@ -23,6 +23,7 @@ your table's schema by adding appropriate struct fields and tags.
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -120,6 +121,36 @@ func Get(tableName string, records []interface{}, db *gorm.DB) []interface{} {
 	// Delete - delete tableName
 	db.Delete(&tableName, 1)
 	return records
+}
+
+// QueryTable searches for records in the specified table based on the provided criteria
+func Get2(db *gorm.DB, tableName string, jsonInput string) (string, error) {
+	// Parse the JSON input
+	var searchParams map[string]interface{}
+	err := json.Unmarshal([]byte(jsonInput), &searchParams)
+	if err != nil {
+		return "", err
+	}
+
+	// Build the query
+	query := db.Table(tableName)
+	for key, value := range searchParams {
+		query = query.Where(fmt.Sprintf("%s = ?", key), value)
+	}
+
+	// Execute the query
+	result := query.Find(&[]map[string]interface{}{})
+	if result.Error != nil {
+		return "", result.Error
+	}
+
+	// Convert result to JSON string
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+
+	return string(resultJSON), nil
 }
 
 func Update(tableName string, id string, db *gorm.DB) {
