@@ -24,5 +24,5 @@ func (l *Logger) LogError(message string) {
 // LogInfo logs an info message with green color
 func (l *Logger) LogInfo(message string) {
 	info := color.New(color.FgGreen).SprintFunc()
-	fmt.Println("[ERROR]", info(message))
+	fmt.Println("[INFO]", info(message))
 }
