@@ -123,7 +123,6 @@ func Get(tableName string, records []interface{}, db *gorm.DB) []interface{} {
 	return records
 }
 
-// QueryTable searches for records in the specified table based on the provided criteria
 func Get2(db *gorm.DB, tableName string, jsonInput string) (string, error) {
 	// Parse the JSON input
 	var searchParams map[string]interface{}
