@@ -133,7 +133,7 @@ func Auth(req CdRequest) CdResponse {
 	// 	return "", nil
 	// }
 
-	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.UserName)
+	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.Password)
 	logger.LogInfo("UserModule::Auth()/authenticated:" + fmt.Sprint(authenticated))
 	if err != nil {
 		log.Fatal("Error authenticating user:", err)
