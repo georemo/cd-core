@@ -63,9 +63,9 @@ type FValItem struct {
 
 // User model
 type User struct {
-	UserId        uint   `gorm:"primaryKey"`
-	UserGuid      string `json:"user_guid"`
-	UserName      string
+	UserId        uint      `gorm:"primaryKey"`
+	UserGuid      string    `json:"user_guid"`
+	UserName      string    `gorm: "column: user_name`
 	Password      string    `json:"password"`
 	Email         string    `json:"email"`
 	DocId         uint      `json:"doc_id"`
