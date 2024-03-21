@@ -65,7 +65,7 @@ type FValItem struct {
 type User struct {
 	UserId        uint      `gorm:"primaryKey"`
 	UserGuid      string    `json:"user_guid"`
-	UserName      string    `gorm: "column: user_name`
+	User_name     string    `json:"user_name"`
 	Password      string    `json:"password"`
 	Email         string    `json:"email"`
 	DocId         uint      `json:"doc_id"`
@@ -132,7 +132,7 @@ func Auth(req CdRequest) CdResponse {
 	// 	return "", nil
 	// }
 
-	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.UserName)
+	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.User_name, req.Dat.F_vals.Data.User_name)
 	if err != nil {
 		log.Fatal("Error authenticating user:", err)
 		var appState = CdAppState{true, err.Error(), "", "", ""}
