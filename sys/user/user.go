@@ -20,6 +20,47 @@ type FVals struct {
 	data User
 }
 
+// ///////////////////////////////////////
+// Make a new CdResponse type that is a typed collection of fields
+// (Title and Status), both of which are of type string
+type CdResponse struct {
+	AppState CdAppState
+	Data     RespData
+}
+
+type CdAppState struct {
+	Success bool
+	Info    string
+	Sess    string
+	Cache   string
+	SConfig string
+}
+
+type RespData struct {
+	Data           []User
+	RowsAffected   int
+	NumberOfResult int
+}
+
+type CdRequest struct {
+	Ctx string
+	M   string
+	C   string
+	A   string
+	Dat FValDat
+}
+
+type FValDat struct {
+	F_vals FValItem
+	Token  string
+}
+
+type FValItem struct {
+	Data User
+}
+
+////////////////////////////////////////////
+
 // User model
 type User struct {
 	UserId        uint      `gorm:"primaryKey"`
@@ -68,37 +109,45 @@ type User struct {
   - @param req
   - @param res
 */
-func Auth(req string) (string, error) {
+func Auth(req CdRequest) CdResponse {
+	var users []User
 	// var records []User
 	// usr := base.Get("user", records, db)
 
 	// get user and anon data
 	// 1. convert req to struct
-	reqStruct, err := base.JSONToICdRequest(req)
-	if err != nil {
-		logger.LogError(err.Error())
-		return "", nil
-	}
+	// reqStruct, err := base.JSONToICdRequest(req)
+	// if err != nil {
+	// 	logger.LogError(err.Error())
+	// 	return "", nil
+	// }
 
-	// Accessing fields of MyStruct
-	logger.LogInfo("Module:" + reqStruct.M)
-	logger.LogInfo("Dat:" + reqStruct.Dat)
+	// // Accessing fields of MyStruct
+	// logger.LogInfo("Module:" + reqStruct.M)
+	// logger.LogInfo("Dat:" + reqStruct.Dat)
 
-	fv, err := fVals(reqStruct.Dat)
-	if err != nil {
-		log.Fatal("Error:", err)
-		return "", nil
-	}
+	// fv, err := fVals(reqStruct.Dat)
+	// if err != nil {
+	// 	log.Fatal("Error:", err)
+	// 	return "", nil
+	// }
 
-	authenticated, err := AuthenticateUser(fv.data.UserName, fv.data.Password)
+	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.UserName)
 	if err != nil {
 		log.Fatal("Error authenticating user:", err)
+		var appState = CdAppState{true, err.Error(), "", "", ""}
+		var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
 	}
 
+	respMsg := ""
 	if authenticated {
-		fmt.Println("User authenticated successfully")
+		respMsg = "User authenticated successfully"
+		fmt.Println(respMsg)
 	} else {
-		fmt.Println("Invalid credentials")
+		respMsg = "User authenticated successfully"
+		fmt.Println(respMsg)
 	}
 
 	// connect to db and check validity of password
@@ -109,8 +158,10 @@ func Auth(req string) (string, error) {
 	fmt.Println("cd-user/Auth(): SessionID:", sid)
 
 	// resp := "{name:User, version:0.0.7 publisher: \"EMP Services Ltd\"}"
-	resp := `{"state":"success", "data":[]}`
-	return resp, nil
+	var appState = CdAppState{authenticated, respMsg, "", "", ""}
+	var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
+	resp := CdResponse{AppState: appState, Data: appData}
+	return resp
 }
 
 // HashPassword hashes the password using bcrypt
