@@ -135,7 +135,7 @@ func Auth(req CdRequest) CdResponse {
 	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.UserName)
 	if err != nil {
 		log.Fatal("Error authenticating user:", err)
-		var appState = CdAppState{true, err.Error(), "", "", ""}
+		var appState = CdAppState{false, err.Error(), "", "", ""}
 		var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
 		resp := CdResponse{AppState: appState, Data: appData}
 		return resp
@@ -144,10 +144,12 @@ func Auth(req CdRequest) CdResponse {
 	respMsg := ""
 	if authenticated {
 		respMsg = "User authenticated successfully"
-		fmt.Println(respMsg)
+		fmt.Println("respMsg:", respMsg)
+		fmt.Println("authenticated:", authenticated)
 	} else {
-		respMsg = "User authenticated successfully"
-		fmt.Println(respMsg)
+		respMsg = "User authentication failed"
+		fmt.Println("respMsg:", respMsg)
+		fmt.Println("authenticated:", authenticated)
 	}
 
 	// connect to db and check validity of password
