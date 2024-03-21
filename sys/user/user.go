@@ -110,6 +110,7 @@ type User struct {
   - @param res
 */
 func Auth(req CdRequest) CdResponse {
+	logger.LogInfo("Starting UserModule::Auth()...")
 	var users []User
 	// var records []User
 	// usr := base.Get("user", records, db)
@@ -133,8 +134,10 @@ func Auth(req CdRequest) CdResponse {
 	// }
 
 	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.UserName)
+	logger.LogInfo("UserModule::Auth()/authenticated:" + fmt.Sprint(authenticated))
 	if err != nil {
 		log.Fatal("Error authenticating user:", err)
+		logger.LogInfo("UserModule::Auth()/Error authenticating user:" + err.Error())
 		var appState = CdAppState{false, err.Error(), "", "", ""}
 		var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
 		resp := CdResponse{AppState: appState, Data: appData}
@@ -144,12 +147,10 @@ func Auth(req CdRequest) CdResponse {
 	respMsg := ""
 	if authenticated {
 		respMsg = "User authenticated successfully"
-		fmt.Println("respMsg:", respMsg)
-		fmt.Println("authenticated:", authenticated)
+		logger.LogInfo("UserModule::Auth()/respMsg:" + respMsg)
 	} else {
 		respMsg = "User authentication failed"
-		fmt.Println("respMsg:", respMsg)
-		fmt.Println("authenticated:", authenticated)
+		logger.LogInfo("UserModule::Auth()/respMsg:" + respMsg)
 	}
 
 	// connect to db and check validity of password
@@ -161,6 +162,7 @@ func Auth(req CdRequest) CdResponse {
 
 	// resp := "{name:User, version:0.0.7 publisher: \"EMP Services Ltd\"}"
 	var appState = CdAppState{authenticated, respMsg, "", "", ""}
+	appState.Sess = sid
 	var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
 	resp := CdResponse{AppState: appState, Data: appData}
 	return resp
@@ -177,17 +179,30 @@ func HashPassword(password string) (string, error) {
 
 // CheckPasswordHash compares a hashed password with its plaintext version
 func CheckPasswordHash(password, hash string) bool {
+	logger.LogInfo("Starting UserModule::CheckPasswordHash()...")
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+	if err != nil {
+		logger.LogWarning("UserModule::CheckPasswordHash(): password verification failed!")
+		log.Println(err)
+		return false
+	}
+	logger.LogInfo("UserModule::CheckPasswordHash(): password verification success!")
+	return true
 }
 
 // AuthenticateUser authenticates a user by username and password
 func AuthenticateUser(username, password string) (bool, error) {
+	logger.LogInfo("Starting UserModule::AuthenticateUser()...")
+	logger.LogInfo("UserModule::AuthenticateUser()/username:" + username)
+	logger.LogInfo("UserModule::AuthenticateUser()/password:" + password)
 	var user User
 	result := db.Where("username = ?", username).First(&user)
+
 	if result.Error != nil {
 		return false, result.Error
 	}
+	logger.LogInfo("UserModule::AuthenticateUser()/result:" + fmt.Sprint(result))
+	logger.LogInfo("UserModule::AuthenticateUser()/user.Password:" + fmt.Sprint(user.Password))
 	return CheckPasswordHash(password, user.Password), nil
 }
 
