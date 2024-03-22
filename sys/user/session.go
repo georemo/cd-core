@@ -23,15 +23,15 @@ consumer_guid string `json:"current_user_id"`
 
 // Session model
 type Session struct {
-	SessionId     uint      `gorm:"primaryKey"`
-	CurrentUserId uint      `json:"current_user_id"`
-	CdToken       string    `json:"cd_token"`
-	Active        bool      `json:"active"`
-	Ttl           uint      `json:"ttl"`
-	AccTime       time.Time `json:"acc_time"`
-	StartTime     time.Time `json:"start_time"`
-	DeviceNetId   uint      `json:"device_net_id"`
-	ConsumerGuid  string    `json:"consumer_guid"`
+	SessionId     uint `gorm:"primaryKey"`
+	CurrentUserId uint
+	CdToken       string
+	Active        bool
+	Ttl           uint
+	AccTime       time.Time
+	StartTime     time.Time
+	DeviceNetId   uint
+	ConsumerGuid  string
 }
 
 func SessCreate(req CdRequest) (int, error) {

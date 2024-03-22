@@ -2,7 +2,7 @@
 echo "current repository latest version:\n"
 git ls-remote --tags https://github.com/tcp-x/cd-core.git
 # set latest version
-Version="v0.0.51"
+Version="v0.0.52"
 # projDir="./cd-user/user.go"
 
 # cd $projDir
