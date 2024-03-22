@@ -4,22 +4,46 @@ package user
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
+/*
+SessionId  uint      `gorm:"primaryKey"`
+CurrentUserId uint      `json:"current_user_id"`
+CdToken string `json:"cd_token"`
+active bool `json:"current_user_id"`
+ttl unit `json:"current_user_id"`
+acc_time time time.Time `json:"current_user_id"`
+start_time time.Time `json:"current_user_id"`
+device_net_id unit `json:"current_user_id"`
+consumer_guid string `json:"current_user_id"`
+*/
+
 // Session model
 type Session struct {
-	SessionId     uint   `gorm:"primaryKey"`
-	SessionGuid   string `json:"Session_guid"`
-	SessionName   string `json:"Session_name"`
-	ActivationKey string `json:"activation_key"`
-	CompanyId     uint   `json:"company_id"`
-	SessionTypeId uint   `json:"Session_type_id"`
+	SessionId     uint      `gorm:"primaryKey"`
+	CurrentUserId uint      `json:"current_user_id"`
+	CdToken       string    `json:"cd_token"`
+	Active        bool      `json:"active"`
+	Ttl           uint      `json:"ttl"`
+	AccTime       time.Time `json:"acc_time"`
+	StartTime     time.Time `json:"start_time"`
+	DeviceNetId   uint      `json:"device_net_id"`
+	ConsumerGuid  string    `json:"consumer_guid"`
 }
 
-func New(req string) (string, error) {
-	return "", nil
+func SessCreate(req CdRequest) (int, error) {
+	logger.LogInfo("Starting UserModule::Session::SessNew()...")
+	var sess Session
+	sessResult := db.Create(&sess)
+	if sessResult.Error != nil {
+		fmt.Println("Error creating user:", sessResult.Error)
+		return 0, sessResult.Error
+	}
+	logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(sessResult))
+	return int(sess.SessionId), nil
 }
 
 func SessInit(cdToken string) {
@@ -39,6 +63,7 @@ func SessInit(cdToken string) {
 }
 
 func SessID() string {
+	// create a new session
 	return "dummy_cd_token"
 }
 
