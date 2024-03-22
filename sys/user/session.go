@@ -37,6 +37,8 @@ type Session struct {
 func SessCreate(req CdRequest) (int, error) {
 	logger.LogInfo("Starting UserModule::Session::SessNew()...")
 	var sess Session
+	sess.AccTime = time.Now()
+	sess.StartTime = time.Now()
 	sessResult := db.Create(&sess)
 	if sessResult.Error != nil {
 		fmt.Println("Error creating user:", sessResult.Error)
