@@ -7,19 +7,8 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"gorm.io/datatypes"
 )
-
-/*
-SessionId  uint      `gorm:"primaryKey"`
-CurrentUserId uint      `json:"current_user_id"`
-CdToken string `json:"cd_token"`
-active bool `json:"current_user_id"`
-ttl unit `json:"current_user_id"`
-acc_time time time.Time `json:"current_user_id"`
-start_time time.Time `json:"current_user_id"`
-device_net_id unit `json:"current_user_id"`
-consumer_guid string `json:"current_user_id"`
-*/
 
 // Session model
 type Session struct {
@@ -30,7 +19,7 @@ type Session struct {
 	Ttl           uint
 	AccTime       time.Time
 	StartTime     time.Time
-	DeviceNetId   uint
+	DeviceNetId   datatypes.JSON
 	ConsumerGuid  string
 }
 
