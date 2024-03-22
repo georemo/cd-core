@@ -41,7 +41,7 @@ func SessCreate(req CdRequest) (int, error) {
 	sess.StartTime = time.Now()
 	sessResult := db.Create(&sess)
 	if sessResult.Error != nil {
-		fmt.Println("Error creating user:", sessResult.Error)
+		fmt.Println("Error creating session:", sessResult.Error)
 		return 0, sessResult.Error
 	}
 	logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(sessResult))
