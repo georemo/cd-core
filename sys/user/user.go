@@ -111,7 +111,7 @@ type User struct {
   - @param res
 */
 func Auth(req CdRequest) CdResponse {
-	logger.LogInfo("Module version:v0.0.53")
+	logger.LogInfo("Module version:v0.0.55")
 	logger.LogInfo("Starting UserModule::User::Auth()...")
 	var users []User
 
