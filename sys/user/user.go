@@ -87,6 +87,8 @@ type User struct {
 	UserTypeId    uint      `json:"user_type_id"`
 }
 
+var u, anon User
+
 /*
 *
   - {
@@ -112,7 +114,7 @@ type User struct {
   - @param res
 */
 func Auth(req CdRequest) CdResponse {
-	logger.LogInfo("Module version:v0.0.56")
+	logger.LogInfo("Module version:v0.0.59")
 	logger.LogInfo("Starting UserModule::User::Auth()...")
 	var users []User
 
@@ -137,7 +139,7 @@ func Auth(req CdRequest) CdResponse {
 		if err != nil {
 			logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
 			var appState = CdAppState{false, err.Error(), "", "", ""}
-			var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
+			var appData = RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
 			resp := CdResponse{AppState: appState, Data: appData}
 			return resp
 		}
@@ -145,13 +147,16 @@ func Auth(req CdRequest) CdResponse {
 	} else {
 		respMsg = "User authentication failed"
 		logger.LogInfo("UserModule::User::Auth()/respMsg:" + respMsg)
+		logger.LogWarning("UserModule::User::Auth()/Warning:" + respMsg)
+		var appState = CdAppState{false, respMsg, "", "", ""}
+		var appData = RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 0}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
 	}
-
-	fmt.Println("cd-user/Auth(): SessionID:", sid)
 
 	var appState = CdAppState{authenticated, respMsg, "", "", ""}
 	appState.Sess = sid
-	var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
+	var appData = RespData{Data: []User{u}, RowsAffected: 0, NumberOfResult: 1}
 	resp := CdResponse{AppState: appState, Data: appData}
 	return resp
 }
@@ -168,17 +173,47 @@ func AuthenticateUser(username, password string) (bool, error) {
 	//
 	/*
 		// Strategy 2: get requested user and 'anon' data/ anon data is used in case of failure
-		db.Where("role = ?", "admin").Or("role = ?", "super_admin").Find(&users)
+		db.Where("user_name = ?", username).Or("user_name = ?", "anon").Find(&users)
 		// SELECT * FROM users WHERE role = 'admin' OR role = 'super_admin';
 	*/
+
 	// result := db.Where("username = ?", username).Or("username = ?", "anon").Find(&users)
-	result := db.Table("user").Select("user_id", "user_name", "password").Where("user_name = ?", username).Scan(&users)
-	if result.Error != nil {
-		return false, result.Error
+
+	// type Result struct {
+	// 	UserId   string
+	// 	UserName string
+	// 	Password string
+	// }
+	// var result Result
+	results := db.Table("user").
+		Select("user_id", "user_name", "password").
+		Where("user_name = ?", username).
+		Or("user_name = ?", "anon").
+		Scan(&users)
+	if results.Error != nil {
+		return false, results.Error
 	}
-	logger.LogInfo("UserModule::User::AuthenticateUser()/result:" + fmt.Sprint(result))
+
+	rows, err := results.Rows()
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		db.ScanRows(rows, &users)
+		fmt.Println(users)
+		if users.UserName == username {
+			u = users
+		}
+		if users.UserName == "anon" {
+			anon = users
+		}
+	}
+
+	logger.LogInfo("UserModule::User::AuthenticateUser()/result:" + fmt.Sprint(results))
 	logger.LogInfo("UserModule::User::AuthenticateUser()/user.Password:" + fmt.Sprint(users.Password))
-	return CheckPasswordHash(password, users.Password), nil
+	return CheckPasswordHash(password, u.Password), nil
 }
 
 // CheckPasswordHash compares a hashed password with its plaintext version
@@ -235,14 +270,14 @@ func CreateUser(req CdRequest) CdResponse {
 	return resp
 }
 
-func fVals(fvals string) (FVals, error) {
-	fvalStruct, err := JSONToFVals(fvals)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return fvalStruct, err
-	}
-	return fvalStruct, nil
-}
+// func fVals(fvals string) (FVals, error) {
+// 	fvalStruct, err := JSONToFVals(fvals)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return fvalStruct, err
+// 	}
+// 	return fvalStruct, nil
+// }
 
 // Function to convert JSON string to fVals
 func JSONToFVals(jsonString string) (FVals, error) {
