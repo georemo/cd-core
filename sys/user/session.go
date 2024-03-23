@@ -23,7 +23,7 @@ type Session struct {
 	ConsumerGuid  string
 }
 
-func SessCreate(req CdRequest) (int, error) {
+func CreateSess(req CdRequest) (int, error) {
 	logger.LogInfo("Starting UserModule::Session::SessNew()...")
 	var sess Session
 	sess.AccTime = time.Now()

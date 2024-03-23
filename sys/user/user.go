@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/google/uuid"
 	"github.com/tcp-x/cd-core/sys/base"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -111,7 +112,7 @@ type User struct {
   - @param res
 */
 func Auth(req CdRequest) CdResponse {
-	logger.LogInfo("Module version:v0.0.55")
+	logger.LogInfo("Module version:v0.0.56")
 	logger.LogInfo("Starting UserModule::User::Auth()...")
 	var users []User
 
@@ -120,7 +121,6 @@ func Auth(req CdRequest) CdResponse {
 	authenticated, err := AuthenticateUser(req.Dat.F_vals.Data.UserName, req.Dat.F_vals.Data.Password)
 	logger.LogInfo("UserModule::User::Auth()/authenticated:" + fmt.Sprint(authenticated))
 	if err != nil {
-		// log.Fatal("Error authenticating user:", err)
 		logger.LogInfo("UserModule::User::Auth()/Error authenticating user:" + err.Error())
 		var appState = CdAppState{false, err.Error(), "", "", ""}
 		var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
@@ -133,7 +133,7 @@ func Auth(req CdRequest) CdResponse {
 	if authenticated {
 		respMsg = "User authenticated successfully"
 		logger.LogInfo("UserModule::User::Auth()/respMsg:" + respMsg)
-		sidInt, err := SessCreate(req)
+		sidInt, err := CreateSess(req)
 		if err != nil {
 			logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
 			var appState = CdAppState{false, err.Error(), "", "", ""}
@@ -147,14 +147,8 @@ func Auth(req CdRequest) CdResponse {
 		logger.LogInfo("UserModule::User::Auth()/respMsg:" + respMsg)
 	}
 
-	// connect to db and check validity of password
-	// Auth input should have username and password
-
-	// test if /tcp-x/user/session is accessible
-
 	fmt.Println("cd-user/Auth(): SessionID:", sid)
 
-	// resp := "{name:User, version:0.0.7 publisher: \"EMP Services Ltd\"}"
 	var appState = CdAppState{authenticated, respMsg, "", "", ""}
 	appState.Sess = sid
 	var appData = RespData{Data: users, RowsAffected: 0, NumberOfResult: 1}
@@ -162,13 +156,29 @@ func Auth(req CdRequest) CdResponse {
 	return resp
 }
 
-// HashPassword hashes the password using bcrypt
-func HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
+// AuthenticateUser authenticates a user by username and password
+func AuthenticateUser(username, password string) (bool, error) {
+	logger.LogInfo("Starting UserModule::User::AuthenticateUser()...")
+	logger.LogInfo("UserModule::User::AuthenticateUser()/username:" + username)
+	logger.LogInfo("UserModule::User::AuthenticateUser()/password:" + password)
+	var users User
+
+	// Strategy 1: select only the queried user and expect one result only
+	// result := db.Where("username = ?", username).First(&user)
+	//
+	/*
+		// Strategy 2: get requested user and 'anon' data/ anon data is used in case of failure
+		db.Where("role = ?", "admin").Or("role = ?", "super_admin").Find(&users)
+		// SELECT * FROM users WHERE role = 'admin' OR role = 'super_admin';
+	*/
+	// result := db.Where("username = ?", username).Or("username = ?", "anon").Find(&users)
+	result := db.Table("user").Select("user_id", "user_name", "password").Where("username = ?", username).Scan(&users)
+	if result.Error != nil {
+		return false, result.Error
 	}
-	return string(hashedPassword), nil
+	logger.LogInfo("UserModule::User::AuthenticateUser()/result:" + fmt.Sprint(result))
+	logger.LogInfo("UserModule::User::AuthenticateUser()/user.Password:" + fmt.Sprint(users.Password))
+	return CheckPasswordHash(password, users.Password), nil
 }
 
 // CheckPasswordHash compares a hashed password with its plaintext version
@@ -184,19 +194,45 @@ func CheckPasswordHash(password, hash string) bool {
 	return true
 }
 
-// AuthenticateUser authenticates a user by username and password
-func AuthenticateUser(username, password string) (bool, error) {
-	logger.LogInfo("Starting UserModule::User::AuthenticateUser()...")
-	logger.LogInfo("UserModule::User::AuthenticateUser()/username:" + username)
-	logger.LogInfo("UserModule::User::AuthenticateUser()/password:" + password)
-	var user User
-	result := db.Where("username = ?", username).First(&user)
-	if result.Error != nil {
-		return false, result.Error
+// HashPassword hashes the password using bcrypt
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
 	}
-	logger.LogInfo("UserModule::User::AuthenticateUser()/result:" + fmt.Sprint(result))
-	logger.LogInfo("UserModule::User::AuthenticateUser()/user.Password:" + fmt.Sprint(user.Password))
-	return CheckPasswordHash(password, user.Password), nil
+	return string(hashedPassword), nil
+}
+
+func CreateUser(req CdRequest) CdResponse {
+	logger.LogInfo("Starting UserModule::User::CreateUser()...")
+	var user User
+	user.UserName = req.Dat.F_vals.Data.UserName
+	user.UserGuid = fmt.Sprint(uuid.New())
+	userResult := db.Create(&user)
+	if userResult.Error != nil {
+		logger.LogInfo("UserModule::User::CreateUser()/Error creating user:" + fmt.Sprint(userResult.Error))
+		var appState = CdAppState{false, fmt.Sprint(userResult.Error), "", "", ""}
+		var appData = RespData{Data: []User{}, RowsAffected: 0, NumberOfResult: 1}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(userResult))
+	var appState = CdAppState{true, "User registered successfully", "", "", ""}
+
+	sid := ""
+	sidInt, err := CreateSess(req)
+	if err != nil {
+		logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
+		var appState = CdAppState{false, err.Error(), "", "", ""}
+		var appData = RespData{Data: []User{}, RowsAffected: 0, NumberOfResult: 1}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	sid = strconv.Itoa(sidInt)
+	appState.Sess = sid
+	var appData = RespData{Data: []User{}, RowsAffected: 0, NumberOfResult: 1}
+	resp := CdResponse{AppState: appState, Data: appData}
+	return resp
 }
 
 func fVals(fvals string) (FVals, error) {
