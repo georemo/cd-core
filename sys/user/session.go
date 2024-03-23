@@ -28,7 +28,8 @@ func CreateSess(req CdRequest) (int, error) {
 	var sess Session
 	sess.AccTime = time.Now()
 	sess.StartTime = time.Now()
-	sessResult := db.Create(&sess)
+	// sessResult := db.Create(&sess)
+	sessResult := db.Table("session").Create(&sess)
 	if sessResult.Error != nil {
 		fmt.Println("Error creating session:", sessResult.Error)
 		return 0, sessResult.Error
