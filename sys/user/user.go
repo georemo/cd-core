@@ -172,7 +172,7 @@ func AuthenticateUser(username, password string) (bool, error) {
 		// SELECT * FROM users WHERE role = 'admin' OR role = 'super_admin';
 	*/
 	// result := db.Where("username = ?", username).Or("username = ?", "anon").Find(&users)
-	result := db.Table("user").Select("user_id", "user_name", "password").Where("username = ?", username).Scan(&users)
+	result := db.Table("user").Select("user_id", "user_name", "password").Where("user_name = ?", username).Scan(&users)
 	if result.Error != nil {
 		return false, result.Error
 	}
