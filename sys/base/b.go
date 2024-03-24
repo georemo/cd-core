@@ -6,7 +6,67 @@ import (
 	"fmt"
 	"os"
 	"plugin"
+
+	"github.com/bradfitz/gomemcache/memcache"
+	"gorm.io/datatypes"
 )
+
+var db = Conn()
+var mc = memcache.New("localhost:11211")
+var logger Logger
+var respMsg = ""
+
+// ///////////////////////////////////////
+// Make a new CdResponse type that is a typed collection of fields
+// (Title and Status), both of which are of type string
+type CdResponse struct {
+	AppState CdAppState
+	Data     RespData
+}
+
+type CdAppState struct {
+	Success bool
+	Info    string
+	Sess    datatypes.JSON
+	Cache   string
+	SConfig string
+}
+
+type RespData struct {
+	Data           interface{}
+	RowsAffected   int
+	NumberOfResult int
+}
+
+type CdRequest struct {
+	Ctx string
+	M   string
+	C   string
+	A   string
+	Dat FValDat
+}
+
+type FValDat struct {
+	F_vals FValItem
+	Token  string
+}
+
+type FValItem struct {
+	Data interface{}
+}
+
+type ServiceInput struct {
+	ServiceModel interface{}
+	ModelName    string
+	DocName      string
+	Cmd          Cmd
+	DSource      int
+}
+
+type Cmd struct {
+	Action string
+	Query  json.RawMessage
+}
 
 var jsonMap map[string]interface{}
 var jReq ICdRequest
@@ -158,4 +218,37 @@ func JSONToICdRequest(jsonString string) (ICdRequestExp, error) {
 	var reqData ICdRequestExp
 	err := json.Unmarshal([]byte(jsonString), &reqData)
 	return reqData, err
+}
+
+func CdCreate(req CdRequest, servInput ServiceInput) CdResponse {
+	result := db.Table(servInput.ModelName).Create(&servInput.ServiceModel)
+	if result.Error != nil {
+		respMsg = "Could not create" + servInput.ModelName
+		logger.LogInfo("Base::CbCreate()/respMsg:" + respMsg)
+		logger.LogError("Base::CbCreate():" + fmt.Sprint(result.Error))
+		var appState = CdAppState{false, respMsg, nil, "", ""}
+		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	// Convert query result to JSON
+	r, err := result.Rows()
+	if err != nil {
+		var appState = CdAppState{false, respMsg, nil, "", ""}
+		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	jsonResult, err := json.Marshal(r)
+	if err != nil {
+		var appState = CdAppState{false, respMsg, nil, "", ""}
+		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
+		resp := CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	resp := CdResponse{}
+	var appState = CdAppState{true, respMsg, jsonResult, "", ""}
+	var appData = RespData{Data: jsonResult, RowsAffected: 0, NumberOfResult: 1}
+	resp = CdResponse{AppState: appState, Data: appData}
+	return resp
 }

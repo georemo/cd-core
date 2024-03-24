@@ -1,8 +1,8 @@
 # get current repository latest version
-echo "current repository latest version:\n"
-git ls-remote --tags https://github.com/tcp-x/cd-core.git
+# echo "current repository latest version:\n"
+# git ls-remote --tags https://github.com/tcp-x/cd-core.git
 # set latest version
-Version="v0.0.59"
+Version="v0.0.60"
 # projDir="./cd-user/user.go"
 
 # cd $projDir

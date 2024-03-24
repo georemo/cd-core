@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/tcp-x/cd-core/sys/base"
 	"gorm.io/datatypes"
 )
 
@@ -23,19 +24,21 @@ type Session struct {
 	ConsumerGuid  string
 }
 
-func CreateSess(req CdRequest) (int, error) {
+func CreateSess(req base.CdRequest) base.CdResponse {
 	logger.LogInfo("Starting UserModule::Session::SessNew()...")
-	var sess Session
-	sess.AccTime = time.Now()
-	sess.StartTime = time.Now()
-	// sessResult := db.Create(&sess)
-	sessResult := db.Table("session").Create(&sess)
-	if sessResult.Error != nil {
-		fmt.Println("Error creating session:", sessResult.Error)
-		return 0, sessResult.Error
-	}
-	logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(sessResult))
-	return int(sess.SessionId), nil
+	// var sess Session
+	// sess.AccTime = time.Now()
+	// sess.StartTime = time.Now()
+	// // sessResult := db.Create(&sess)
+	// sessResult := db.Table("session").Create(&sess)
+	// if sessResult.Error != nil {
+	// 	fmt.Println("Error creating session:", sessResult.Error)
+	// 	return 0, sessResult.Error
+	// }
+	// logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(sessResult))
+	servInput := base.ServiceInput{}
+	resp := base.CdCreate(req, servInput)
+	return resp
 }
 
 func SessInit(cdToken string) {
@@ -85,6 +88,57 @@ func SessIsValid() bool {
 	} else {
 		return true
 	}
+}
+
+/*
+`active` tinyint(1) DEFAULT NULL,
+
+	`ttl` int DEFAULT NULL,
+	`acc_time` datetime(4) DEFAULT NULL,
+	`start_time` datetime DEFAULT NULL,
+	`device_net_id` json DEFAULT NULL,
+	`consumer_guid` varchar(40) DEFAULT NULL,
+*/
+func GetSessByToken(req base.CdRequest) base.CdResponse {
+	var session Session
+	sessionResult := db.Table("session").
+		Select("session_id", "current_user_id", "cd_token", "active", "acc_time", "start_time", "consumer_guid").
+		Where("cd_token = ?", req.Dat.Token).
+		Scan(&session)
+	if sessionResult.Error != nil {
+		logger.LogInfo("UserModule::Session::GetSessByToken()/fetching sesson data:" + fmt.Sprint(sessionResult.Error))
+		var appState = base.CdAppState{false, fmt.Sprint(sessionResult.Error), nil, "", ""}
+		var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
+		resp := base.CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+
+	rows, err := userResult.Rows()
+	if err != nil {
+		logger.LogInfo("UserModule::Session::GetSessByToken()/scanning sesson data:" + fmt.Sprint(sessionResult.Error))
+		var appState = base.CdAppState{false, fmt.Sprint(sessionResult.Error), nil, "", ""}
+		var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
+		resp := base.CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		db.ScanRows(rows, &session)
+		fmt.Println(session)
+		// if users.UserName == username {
+		// 	u = users
+		// }
+		// if users.UserName == "anon" {
+		// 	anon = users
+		// }
+	}
+
+	var appState = base.CdAppState{true, "", nil, "", ""}
+	// appState.Sess = sid
+	var appData = base.RespData{Data: []Session{session}, RowsAffected: 0, NumberOfResult: 1}
+	resp := base.CdResponse{AppState: appState, Data: appData}
+	return resp
 }
 
 func SessEnd() {
