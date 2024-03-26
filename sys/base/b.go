@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"os"
 	"plugin"
+	"reflect"
+	"strings"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/fatih/structs"
 	"gorm.io/datatypes"
 )
 
@@ -221,34 +224,63 @@ func JSONToICdRequest(jsonString string) (ICdRequestExp, error) {
 }
 
 func CdCreate(req CdRequest, servInput ServiceInput) CdResponse {
-	result := db.Table(servInput.ModelName).Create(&servInput.ServiceModel)
+	logger.LogInfo("1. Starting BaseModule::CdCreate()...")
+	logger.LogInfo("2. Base::CbCreate()/servInput.ServiceModel:" + fmt.Sprint(servInput.ServiceModel))
+
+	structValue := reflect.ValueOf(servInput.ServiceModel)
+	fields := structs.Fields(servInput.ServiceModel)
+	record := make(map[string]interface{})
+	for i, field := range fields {
+		tag := field.Tag("gorm")
+		logger.LogInfo("3. Base::CbCreate()/tag:" + tag)
+		fieldValue := structValue.Field(i)
+		tag = strings.Replace(tag, ",primaryKey", "", 1)
+		record[tag] = fieldValue.Interface()
+	}
+
+	result := db.Table(servInput.ModelName).Create(record)
 	if result.Error != nil {
-		respMsg = "Could not create" + servInput.ModelName
-		logger.LogInfo("Base::CbCreate()/respMsg:" + respMsg)
-		logger.LogError("Base::CbCreate():" + fmt.Sprint(result.Error))
+		respMsg = "Could not create " + servInput.ModelName
+		logger.LogInfo("4. Base::CbCreate()/respMsg:" + respMsg)
+		logger.LogError("5. Base::CbCreate()/Error:" + fmt.Sprint(result.Error))
 		var appState = CdAppState{false, respMsg, nil, "", ""}
 		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
 		resp := CdResponse{AppState: appState, Data: appData}
 		return resp
 	}
+	logger.LogInfo("5.1. Base::CbCreate()/result:" + fmt.Sprint(result))
+	logger.LogInfo("5.2. Base::CbCreate()/result.RowsAffected:" + fmt.Sprint(result.RowsAffected))
+	logger.LogInfo("5.3. Base::CbCreate()/servInput.ServiceModel:" + fmt.Sprint(servInput.ServiceModel))
 	// Convert query result to JSON
 	r, err := result.Rows()
 	if err != nil {
-		var appState = CdAppState{false, respMsg, nil, "", ""}
+		logger.LogError("6. Base::CbCreate()/Error:" + fmt.Sprint(err.Error()))
+		var appState = CdAppState{false, fmt.Sprint(err.Error()), nil, "", ""}
 		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
 		resp := CdResponse{AppState: appState, Data: appData}
 		return resp
 	}
+	// if r.Next() {
+	// 	r.Columns()
+	// }
+	logger.LogInfo("7. Base::CbCreate()/r:" + fmt.Sprint(r))
 	jsonResult, err := json.Marshal(r)
 	if err != nil {
+		logger.LogError("8. Base::CbCreate()/Error:" + fmt.Sprint(err.Error()))
 		var appState = CdAppState{false, respMsg, nil, "", ""}
 		var appData = RespData{Data: nil, RowsAffected: 0, NumberOfResult: 0}
 		resp := CdResponse{AppState: appState, Data: appData}
 		return resp
 	}
+
+	logger.LogInfo("9. Base::CbCreate()/jsonResult:" + fmt.Sprint(jsonResult))
 	resp := CdResponse{}
 	var appState = CdAppState{true, respMsg, jsonResult, "", ""}
 	var appData = RespData{Data: jsonResult, RowsAffected: 0, NumberOfResult: 1}
 	resp = CdResponse{AppState: appState, Data: appData}
 	return resp
+}
+
+func getStructTag(field reflect.StructField, s string) {
+	panic("unimplemented")
 }

@@ -32,22 +32,22 @@ func run(data base.ICdRequest) {
 
 }
 
-func setCdRequest(newUser user.User) user.CdRequest {
+func SetUserRequest(newUser user.User) base.CdRequest {
 	// newUser := User{"karl", "secret", "karl@emp.net"}
-	fvalItem := user.FValItem{newUser}
-	fvalDat := user.FValDat{fvalItem, ""}
-	return user.CdRequest{"Sys", "UserModule", "UserController", "Create", fvalDat}
+	fvalItem := base.FValItem{newUser}
+	fvalDat := base.FValDat{fvalItem, ""}
+	return base.CdRequest{"Sys", "UserModule", "UserController", "Create", fvalDat}
 }
 
 func main() {
 	// userHandle := new(UserController)
 	var err error
-	var cdResp user.CdResponse
+	var cdResp base.CdResponse
 
 	// -------------------------------
 	// AUTH USER
 	// -------------------------------
-	req := setCdRequest(user.User{0, "", "karl", "secretx", "", 0, "", false, time.Now(), "", "", "", "", 0, 0, false, "", "", 0, 0})
+	req := SetUserRequest(user.User{0, "", "karl", "secret", "", 0, "", false, time.Now(), "", "", "", "", 0, 0, false, "", "", 0, 0})
 	// err = userHandle.EditPassword(req6, &cdResp)
 	cdResp = user.Auth(req)
 	if err != nil {

@@ -177,18 +177,18 @@ func Auth(req base.CdRequest) base.CdResponse {
 	}
 
 	sessResp := CreateSess(req)
-	jSessData, err := json.Marshal(sessResp.Data)
-	if err != nil {
-		logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
-		var appState = base.CdAppState{false, err.Error(), nil, "", ""}
-		var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
-		resp := base.CdResponse{AppState: appState, Data: appData}
-		return resp
-	}
+	// jSessData, err := json.Marshal(sessResp.Data)
+	// if err != nil {
+	// 	logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
+	// 	var appState = base.CdAppState{false, err.Error(), nil, "", ""}
+	// 	var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
+	// 	resp := base.CdResponse{AppState: appState, Data: appData}
+	// 	return resp
+	// }
 
 	// process authenticated response
 	// resp := AuthResponse(req)
-	var appState = base.CdAppState{true, respMsg, jSessData, "", ""}
+	var appState = base.CdAppState{true, respMsg, sessResp.AppState.Sess, "", ""}
 	// appState.Sess = sid
 	var appData = base.RespData{Data: []User{u}, RowsAffected: 0, NumberOfResult: 1}
 	resp := base.CdResponse{AppState: appState, Data: appData}

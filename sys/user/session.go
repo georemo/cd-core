@@ -2,30 +2,44 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/google/uuid"
 	"github.com/tcp-x/cd-core/sys/base"
-	"gorm.io/datatypes"
 )
 
+var logIndex = 0
+
 // Session model
+// type Session struct {
+// 	SessionId     uint `gorm:"primaryKey"`
+// 	CurrentUserId uint
+// 	CdToken       string
+// 	Active        bool
+// 	Ttl           uint
+// 	AccTime       time.Time
+// 	StartTime     time.Time
+// 	DeviceNetId   datatypes.JSON
+// 	ConsumerGuid  string
+// }
+
 type Session struct {
-	SessionId     uint `gorm:"primaryKey"`
-	CurrentUserId uint
-	CdToken       string
-	Active        bool
-	Ttl           uint
-	AccTime       time.Time
-	StartTime     time.Time
-	DeviceNetId   datatypes.JSON
-	ConsumerGuid  string
+	SessionId     uint      `gorm:"session_id,primaryKey"`
+	CurrentUserId uint      `gorm:"current_user_id"`
+	CdToken       string    `gorm:"cd_token"`
+	Active        bool      `gorm:"active"`
+	Ttl           uint      `gorm:"ttl"`
+	ConsumerGuid  string    `gorm:"consumer_guid"`
+	AccTime       time.Time `gorm:"acc_time"`
 }
 
 func CreateSess(req base.CdRequest) base.CdResponse {
-	logger.LogInfo("Starting UserModule::Session::SessNew()...")
+	logger.LogInfo(strconv.Itoa(logIndex) + ". Starting UserModule::Session::SessNew()...")
 	// var sess Session
 	// sess.AccTime = time.Now()
 	// sess.StartTime = time.Now()
@@ -36,9 +50,53 @@ func CreateSess(req base.CdRequest) base.CdResponse {
 	// 	return 0, sessResult.Error
 	// }
 	// logger.LogInfo("UserModule::Session::SessCreate()/result:" + fmt.Sprint(sessResult))
+
+	// Create a new session instance
+	cdToken := uuid.New()
+	sess := Session{
+		CdToken:       cdToken.String(),
+		Active:        true,
+		ConsumerGuid:  "",
+		CurrentUserId: 1000,
+		AccTime:       time.Now(),
+	}
 	servInput := base.ServiceInput{}
+	servInput.ModelName = "session"
+	servInput.ServiceModel = sess
 	resp := base.CdCreate(req, servInput)
+	req.Dat.Token = sess.CdToken
+	// sessReq := base.CdRequest{}
+	// sessReq.Ctx = "sys"
+	// sessReq.M = "user"
+	// sessReq.C = "session"
+	// sessReq.A = "GetSessByToken"
+	// sessDat := sessReq.Dat.F_vals.Data.(Session)
+	// sessDat.CdToken = sess.CdToken
+	// sessReq.Dat.Token = sess.CdToken
+	sessReq := SetSessionRequest(sess, "GetSessByToken")
+	sessReq.Dat.Token = fmt.Sprint(cdToken)
+	tokenResp := GetSessByToken(sessReq)
+	logger.LogInfo("UserModule::Session::CreateSess()/tokenResp:" + fmt.Sprint(tokenResp))
+	logger.LogInfo("UserModule::Session::CreateSess()/tokenResp.Data:" + fmt.Sprint(tokenResp.Data))
+	sessData, err := json.Marshal(tokenResp.Data)
+	if err != nil {
+		logger.LogInfo("UserModule::User::Auth()/Error creating sesson:" + err.Error())
+		var appState = base.CdAppState{false, err.Error(), nil, "", ""}
+		var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
+		resp := base.CdResponse{AppState: appState, Data: appData}
+		return resp
+	}
+	// logger.LogInfo("UserModule::Session::CreateSess()/sessData:" + fmt.Sprint(sessData))
+	resp.AppState.Sess = sessData
+	resp.Data = tokenResp.Data
 	return resp
+}
+
+func SetSessionRequest(newUser Session, action string) base.CdRequest {
+	// newUser := User{"karl", "secret", "karl@emp.net"}
+	fvalItem := base.FValItem{newUser}
+	fvalDat := base.FValDat{fvalItem, ""}
+	return base.CdRequest{"sys", "user", "session", action, fvalDat}
 }
 
 func SessInit(cdToken string) {
@@ -100,6 +158,7 @@ func SessIsValid() bool {
 	`consumer_guid` varchar(40) DEFAULT NULL,
 */
 func GetSessByToken(req base.CdRequest) base.CdResponse {
+	logger.LogInfo(strconv.Itoa(logIndex) + ". Starting UserModule::Session::GetSessByToken()...")
 	var session Session
 	sessionResult := db.Table("session").
 		Select("session_id", "current_user_id", "cd_token", "active", "acc_time", "start_time", "consumer_guid").
@@ -112,27 +171,27 @@ func GetSessByToken(req base.CdRequest) base.CdResponse {
 		resp := base.CdResponse{AppState: appState, Data: appData}
 		return resp
 	}
+	logger.LogInfo("UserModule::Session::GetSessByToken()/sessionResult:" + fmt.Sprint(sessionResult))
+	// rows, err := userResult.Rows()
+	// if err != nil {
+	// 	logger.LogInfo("UserModule::Session::GetSessByToken()/scanning sesson data:" + fmt.Sprint(sessionResult.Error))
+	// 	var appState = base.CdAppState{false, fmt.Sprint(sessionResult.Error), nil, "", ""}
+	// 	var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
+	// 	resp := base.CdResponse{AppState: appState, Data: appData}
+	// 	return resp
+	// }
+	// defer rows.Close()
 
-	rows, err := userResult.Rows()
-	if err != nil {
-		logger.LogInfo("UserModule::Session::GetSessByToken()/scanning sesson data:" + fmt.Sprint(sessionResult.Error))
-		var appState = base.CdAppState{false, fmt.Sprint(sessionResult.Error), nil, "", ""}
-		var appData = base.RespData{Data: []User{anon}, RowsAffected: 0, NumberOfResult: 1}
-		resp := base.CdResponse{AppState: appState, Data: appData}
-		return resp
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		db.ScanRows(rows, &session)
-		fmt.Println(session)
-		// if users.UserName == username {
-		// 	u = users
-		// }
-		// if users.UserName == "anon" {
-		// 	anon = users
-		// }
-	}
+	// for rows.Next() {
+	// 	db.ScanRows(rows, &session)
+	// 	fmt.Println(session)
+	// 	// if users.UserName == username {
+	// 	// 	u = users
+	// 	// }
+	// 	// if users.UserName == "anon" {
+	// 	// 	anon = users
+	// 	// }
+	// }
 
 	var appState = base.CdAppState{true, "", nil, "", ""}
 	// appState.Sess = sid
